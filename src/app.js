@@ -102,19 +102,25 @@ app.get("/", async (req, res) => {
 });
 app.get("/products", async (req, res) => {
   let productos = await pm01.getProducts();
-  let cortar = req.query.limit;
-
+  const cortar=req.query.limit
+  res.setHeader("Content-Type", "application/json")
   if (cortar) {
     let prodCortados = productos.slice(0, cortar);
-    res.send({ prodCortados });
-  } else res.send({ productos });
+  
+   isNaN(cortar)? res.status(401).json({ error:"ingrese un valor numerico" }):res.json({prodCortados});
+  } 
+  
+  else res.json({ productos });
 });
 
 app.get("/products/:id", async (req, res) => {
   let id = req.params.id;
   let productos = await pm01.getProductById(id);
+  res.setHeader("Content-Type", "application/json")
+  if (isNaN(id)) return res.status(401).json({error:`${id} no es un valor numerico`});
+  productos?res.json({productos}):res.status(401).json({error:"ingrese un id valido"})
 
-  res.send(productos ? { productos } : { error: "ingrese un id valido" });
+  
 });
 
 app.listen(8080, () => console.log("el servidor esta listo"));
