@@ -14,7 +14,7 @@ class ProductManager {
     }
   }
 
-  async addProduct(title, description, price, thumbnail, code, stock) {
+  async addProduct(body) {
     let id = 1;
     let productos = await this.getProducts();
 
@@ -22,26 +22,23 @@ class ProductManager {
       id = productos[productos.length - 1].id + 1;
     }
     let nuevoProducto = {
-      title,
-      description,
-      price,
-      thumbnail,
-      code,
-      stock,
+      ...body,
       id,
     };
     let productoRepetido = productos.find(
       (producto) => producto.code === nuevoProducto.code
     );
+
     if (productoRepetido) {
-      console.log("el code del producto ya existe");
+      console.log("el producto ya existe en DB");
     } else if (
       !nuevoProducto.title ||
       !nuevoProducto.price ||
       !nuevoProducto.description ||
-      !nuevoProducto.thumbnail ||
       !nuevoProducto.code ||
-      !nuevoProducto.stock
+      !nuevoProducto.stock ||
+      !nuevoProducto.status ||
+      !nuevoProducto.category
     ) {
       console.log("complete todos los campos");
     } else {

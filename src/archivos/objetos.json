@@ -9,7 +9,7 @@
           "id": 1
      },
      {
-          "title": "Remera",
+          "title": "remeras",
           "description": "este es un producto prueba",
           "price": 200,
           "thumbnail": "sin imagen",
@@ -81,12 +81,13 @@
           "id": 9
      },
      {
+          "id": 10,
           "title": "Ojotas",
-          "description": "este es un producto prueba",
           "price": 200,
-          "thumbnail": "sin imagen",
+          "description": "este es un producto prueba",
           "code": "abc12312",
           "stock": 25,
-          "id": 10
+          "status": true,
+          "category": "calzado"
      }
 ]
