@@ -110,13 +110,16 @@ productsRouter.get("/", async (req, res) => {
 productsRouter.post("/", async (req, res) => {
   let { title, price, description, code, stock, status, category, thumbnails } =
     req.body;
-
+  if (!status) {
+    status = true;
+  }
   let id = 1;
   let productos = await pm01.getProducts();
 
   if (productos.length > 0) {
     id = productos[productos.length - 1].id + 1;
   }
+
   let nuevoProducto = {
     id,
     title,
@@ -135,17 +138,40 @@ productsRouter.post("/", async (req, res) => {
     return res.status(400).json({ error: `el producto ya existe en DB` });
   }
 
-  if (
-    !title ||
-    !price ||
-    !description ||
-    !code ||
-    !stock ||
-    !status ||
-    !category
-  ) {
+  if (!title || !price || !description || !code || !stock || !category) {
     res.setHeader("Content-Type", "application/json");
     return res.status(400).json({ error: `complete todos los campos` });
+  }
+
+  if (title && typeof title !== "string") {
+    return res
+      .status(400)
+      .json({ error: "La propiedad title debe ser de tipo string" });
+  }
+  if (description && typeof description !== "string") {
+    return res
+      .status(400)
+      .json({ error: "La propiedad description debe ser de tipo string" });
+  }
+  if (code && typeof code !== "string") {
+    return res
+      .status(400)
+      .json({ error: "La propiedad code debe ser de tipo string" });
+  }
+  if (category && typeof category !== "string") {
+    return res
+      .status(400)
+      .json({ error: "La propiedad category debe ser de tipo string" });
+  }
+  if (price && typeof price !== "number") {
+    return res
+      .status(400)
+      .json({ error: "La propiedad price debe ser de tipo numérico" });
+  }
+  if (stock && typeof stock !== "number") {
+    return res
+      .status(400)
+      .json({ error: "La propiedad stock debe ser de tipo numérico" });
   }
 
   let propiedadesPermitidas = [
@@ -210,6 +236,47 @@ productsRouter.put("/:id", async (req, res) => {
       error: `No se aceptan algunas propiedades`,
       propiedadesPermitidas,
     });
+  }
+  let productoRepetido = productos.find(
+    (producto) => producto.code === req.body.code
+  );
+
+  if (productoRepetido) {
+    res.setHeader("Content-Type", "application/json");
+    return res
+      .status(400)
+      .json({ error: `ya existe el producto con code :${req.body.code}` });
+  }
+
+  if (req.body.title && typeof req.body.title !== "string") {
+    return res
+      .status(400)
+      .json({ error: "La propiedad title debe ser de tipo string" });
+  }
+  if (req.body.description && typeof req.body.description !== "string") {
+    return res
+      .status(400)
+      .json({ error: "La propiedad description debe ser de tipo string" });
+  }
+  if (req.body.code && typeof req.body.code !== "string") {
+    return res
+      .status(400)
+      .json({ error: "La propiedad code debe ser de tipo string" });
+  }
+  if (req.body.category && typeof req.body.category !== "string") {
+    return res
+      .status(400)
+      .json({ error: "La propiedad category debe ser de tipo string" });
+  }
+  if (req.body.price && typeof req.body.price !== "number") {
+    return res
+      .status(400)
+      .json({ error: "La propiedad price debe ser de tipo numérico" });
+  }
+  if (req.body.stock && typeof req.body.stock !== "number") {
+    return res
+      .status(400)
+      .json({ error: "La propiedad stock debe ser de tipo numérico" });
   }
 
   productos[indice] = {
