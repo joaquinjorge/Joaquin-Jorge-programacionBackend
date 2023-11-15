@@ -199,6 +199,7 @@ productsRouter.post("/", async (req, res) => {
 
   productos.push(nuevoProducto);
   await fs.promises.writeFile(ruta, JSON.stringify(productos, null, 5));
+  req.io.emit("nuevoProdConMiddleware", nuevoProducto);
   res.setHeader("Content-Type", "application/json");
   res.status(201).json({ nuevoProducto });
 });
@@ -301,6 +302,7 @@ productsRouter.delete("/:pid", async (req, res) => {
   }
   productos.splice(indice, 1);
   await fs.promises.writeFile(ruta, JSON.stringify(productos, null, 5));
+  req.io.emit("prodEliminado", { id });
   res.setHeader("Content-Type", "application/json");
   res
     .status(201)

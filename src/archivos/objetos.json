@@ -54,50 +54,14 @@
           "id": 6
      },
      {
-          "title": "Pantalon",
-          "description": "este es un producto prueba",
-          "price": 200,
-          "thumbnail": "sin imagen",
-          "code": "abc1239",
-          "stock": 25,
-          "id": 7
-     },
-     {
-          "title": "Bufanda",
-          "description": "este es un producto prueba",
-          "price": 200,
-          "thumbnail": "sin imagen",
-          "code": "abc12310",
-          "stock": 25,
-          "id": 8
-     },
-     {
-          "title": "Medias",
-          "description": "este es un producto prueba",
-          "price": 200,
-          "thumbnail": "sin imagen",
-          "code": "abc12311",
-          "stock": 25,
-          "id": 9
-     },
-     {
-          "id": 10,
-          "title": "Ojotas",
+          "id": 7,
+          "title": "producto prueba 3",
           "price": 200,
           "description": "este es un producto prueba",
-          "code": "abc12312",
+          "code": "abc123846",
           "stock": 25,
           "status": true,
-          "category": "calzado"
-     },
-     {
-          "id": 11,
-          "title": "jeans",
-          "price": 250,
-          "description": "este es un producto prueba",
-          "code": "abc12315877",
-          "stock": 25,
-          "status": true,
-          "category": "calzado"
+          "category": "prueba",
+          "thumbnails": "sin imagen"
      }
 ]
