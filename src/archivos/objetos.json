@@ -63,5 +63,16 @@
           "status": true,
           "category": "prueba",
           "thumbnails": "sin imagen"
+     },
+     {
+          "id": 8,
+          "title": "producto prueba 4",
+          "price": 200,
+          "description": "este es un producto prueba",
+          "code": "abc1238486",
+          "stock": 25,
+          "status": true,
+          "category": "prueba",
+          "thumbnails": "sin imagen"
      }
 ]

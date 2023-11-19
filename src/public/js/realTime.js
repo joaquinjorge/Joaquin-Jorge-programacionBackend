@@ -3,6 +3,7 @@ const socket = io();
 socket.on("nuevoProdConMiddleware", (producto) => {
   let ulProd = document.querySelector("ul");
   let liNuevoProd = document.createElement("li");
+  liNuevoProd.setAttribute(`id`, `producto-${producto.id}`);
   liNuevoProd.innerHTML = producto.title;
   ulProd.append(liNuevoProd);
 });
