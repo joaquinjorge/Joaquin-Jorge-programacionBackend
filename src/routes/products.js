@@ -1,6 +1,9 @@
 const fs = require("fs");
-const ProductManager = require("../clases/productManager");
+
 const path = require("path");
+const ProductManager = require("../dao/productManager");
+const productosModelo = require("../dao/models/products.js");
+const mongoose = require("mongoose");
 let ruta = path.join(__dirname, "..", "archivos", "objetos.json");
 
 const Router = require("express").Router;
@@ -96,11 +99,12 @@ const entorno = async () => {
 };
 
 productsRouter.get("/", async (req, res) => {
-  let productos = await pm01.getProducts();
+  let productos = await productosModelo.find();
+
   const cortar = req.query.limit;
   res.setHeader("Content-Type", "application/json");
   if (cortar) {
-    let prodCortados = productos.slice(0, cortar);
+    let prodCortados = await productosModelo.find().limit(cortar);
 
     isNaN(cortar)
       ? res.status(400).json({ error: "ingrese un valor numerico" })
@@ -108,20 +112,12 @@ productsRouter.get("/", async (req, res) => {
   } else res.json({ productos });
 });
 productsRouter.post("/", async (req, res) => {
-  let { title, price, description, code, stock, status, category, thumbnails } =
-    req.body;
+  let { title, price, description, code, stock, status, category } = req.body;
   if (!status) {
     status = true;
   }
-  let id = 1;
-  let productos = await pm01.getProducts();
-
-  if (productos.length > 0) {
-    id = productos[productos.length - 1].id + 1;
-  }
 
   let nuevoProducto = {
-    id,
     title,
     price,
     description,
@@ -129,13 +125,24 @@ productsRouter.post("/", async (req, res) => {
     stock,
     status,
     category,
-    thumbnails,
   };
-  let productoRepetido = productos.find((producto) => producto.code === code);
+  let productoRepetido = false;
 
-  if (productoRepetido) {
+  try {
+    existe = await productosModelo.findOne({ deleted: false, code });
+  } catch (error) {
     res.setHeader("Content-Type", "application/json");
-    return res.status(400).json({ error: `el producto ya existe en DB` });
+    return res.status(500).json({
+      error: `Error inesperado en el servidor - Intente más tarde, o contacte a su administrador`,
+      detalle: error.message,
+    });
+  }
+
+  if (existe) {
+    res.setHeader("Content-Type", "application/json");
+    return res
+      .status(400)
+      .json({ error: `El usuario con code ${code} ya existe en BD...!!!` });
   }
 
   if (!title || !price || !description || !code || !stock || !category) {
@@ -183,6 +190,7 @@ productsRouter.post("/", async (req, res) => {
     "status",
     "category",
     "thumbnails",
+    "deleted",
   ];
   let propiedadesQueLlegan = Object.keys(req.body);
 
@@ -196,20 +204,30 @@ productsRouter.post("/", async (req, res) => {
       propiedadesPermitidas,
     });
   }
+  try {
+    let productoNuevo = await productosModelo.create(nuevoProducto);
 
-  productos.push(nuevoProducto);
-  await fs.promises.writeFile(ruta, JSON.stringify(productos, null, 5));
-  req.io.emit("nuevoProdConMiddleware", nuevoProducto);
-  res.setHeader("Content-Type", "application/json");
-  res.status(201).json({ nuevoProducto });
+    req.io.emit("nuevoProdConMiddleware", nuevoProducto);
+    res.setHeader("Content-Type", "application/json");
+    res.status(200).json({ payload: productoNuevo });
+  } catch (error) {
+    res.setHeader("Content-Type", "application/json");
+    return res.status(500).json({
+      error: `Error inesperado en el servidor - Intente más tarde, o contacte a su administrador`,
+      detalle: error.message,
+    });
+  }
 });
 
 productsRouter.put("/:id", async (req, res) => {
   let { id } = req.params;
-  id = parseInt(id);
-  let productos = await pm01.getProducts();
-  let indice = productos.findIndex((prod) => prod.id === id);
-  if (indice === -1) {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    res.setHeader("Content-Type", "application/json");
+    return res.status(400).json({ error: `Ingrese un id válido...!!!` });
+  }
+  let productos = await productosModelo.findById(id);
+
+  if (!productos) {
     res.setHeader("Content-Type", "application/json");
     return res
       .status(400)
@@ -220,7 +238,7 @@ productsRouter.put("/:id", async (req, res) => {
     "title",
     "price",
     "description",
-    "code",
+    "deleted",
     "stock",
     "status",
     "category",
@@ -238,32 +256,23 @@ productsRouter.put("/:id", async (req, res) => {
       propiedadesPermitidas,
     });
   }
-  let productoRepetido = productos.find(
-    (producto) => producto.code === req.body.code
-  );
-
-  if (productoRepetido) {
-    res.setHeader("Content-Type", "application/json");
-    return res
-      .status(400)
-      .json({ error: `ya existe el producto con code :${req.body.code}` });
-  }
 
   if (req.body.title && typeof req.body.title !== "string") {
     return res
       .status(400)
       .json({ error: "La propiedad title debe ser de tipo string" });
   }
+  if (req.body.deleted && typeof req.body.deleted !== "boolean") {
+    return res
+      .status(400)
+      .json({ error: "La propiedad deleted debe ser de tipo boolean" });
+  }
   if (req.body.description && typeof req.body.description !== "string") {
     return res
       .status(400)
       .json({ error: "La propiedad description debe ser de tipo string" });
   }
-  if (req.body.code && typeof req.body.code !== "string") {
-    return res
-      .status(400)
-      .json({ error: "La propiedad code debe ser de tipo string" });
-  }
+
   if (req.body.category && typeof req.body.category !== "string") {
     return res
       .status(400)
@@ -279,42 +288,66 @@ productsRouter.put("/:id", async (req, res) => {
       .status(400)
       .json({ error: "La propiedad stock debe ser de tipo numérico" });
   }
-
-  productos[indice] = {
-    ...productos[indice],
-    ...req.body,
-    id,
-  };
-  await fs.promises.writeFile(ruta, JSON.stringify(productos, null, 5));
-  res.setHeader("Content-Type", "application/json");
-  res.status(201).json({ productos: productos[indice] });
+  let productoActualizado;
+  try {
+    productoActualizado = await productosModelo.updateOne(
+      { _id: id },
+      req.body
+    );
+    if (productoActualizado.modifiedCount > 0) {
+      res.setHeader("Content-Type", "application/json");
+      res.status(200).json({ payload: "modificacion realizada" });
+    } else {
+      res.setHeader("Content-Type", "application/json");
+      return res.status(400).json({ error: `No se concretó la modificación` });
+    }
+  } catch (error) {
+    res.setHeader("Content-Type", "application/json");
+    return res.status(500).json({
+      error: `Error inesperado en el servidor - Intente más tarde, o contacte a su administrador`,
+      detalle: error.message,
+    });
+  }
 });
 
 productsRouter.delete("/:pid", async (req, res) => {
   let id = req.params.pid;
-  let productos = await pm01.getProducts();
-  let indice = productos.findIndex((p) => p.id === Number(id));
-  if (indice === -1) {
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    res.setHeader("Content-Type", "application/json");
+    return res.status(400).json({ error: `Ingrese un id válido...!!!` });
+  }
+  let productos = await productosModelo.findById(id);
+
+  if (!productos) {
     res.setHeader("Content-Type", "application/json");
     return res
       .status(400)
       .json({ error: `no existe el producto con id ${id}` });
   }
-  productos.splice(indice, 1);
-  await fs.promises.writeFile(ruta, JSON.stringify(productos, null, 5));
-  req.io.emit("prodEliminado", { id });
-  res.setHeader("Content-Type", "application/json");
-  res
-    .status(201)
-    .json({ productoEliminado: `se elimino el producto con id: ${id}` });
+  let productoEliminado;
+  try {
+    productoEliminado = await productosModelo.updateOne(
+      { deleted: false, _id: id },
+      { $set: { deleted: true } }
+    );
+
+    if (productoEliminado.modifiedCount > 0) {
+      req.io.emit("prodEliminado", { id });
+      res.setHeader("Content-Type", "application/json");
+      return res.status(200).json({ payload: "Eliminacion realizada" });
+    } else {
+      res.setHeader("Content-Type", "application/json");
+      return res.status(400).json({ error: `No se concretó la eliminacion` });
+    }
+  } catch (error) {}
 });
 
 productsRouter.get("/:pid", async (req, res) => {
   let id = req.params.pid;
-  let productos = await pm01.getProductById(id);
+  let productos = await productosModelo.findById(id);
   res.setHeader("Content-Type", "application/json");
-  if (isNaN(id))
-    return res.status(400).json({ error: `${id} no es un valor numerico` });
+
   productos
     ? res.json({ productos })
     : res.status(400).json({ error: "ingrese un id valido" });

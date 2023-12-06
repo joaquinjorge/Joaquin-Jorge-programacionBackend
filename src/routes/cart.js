@@ -1,6 +1,7 @@
 const fs = require("fs");
-const ProductManager = require("../clases/productManager");
+
 const path = require("path");
+const ProductManager = require("../dao/productManager");
 let ruta = path.join(__dirname, "..", "archivos", "carrito.json");
 let ruta2 = path.join(__dirname, "..", "archivos", "objetos.json");
 const Router = require("express").Router;
