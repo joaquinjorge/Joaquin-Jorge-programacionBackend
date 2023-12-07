@@ -4,8 +4,8 @@ const messageColeccion = "messages";
 const messageEsquema = new mongoose.Schema({
   id: String,
   user: String,
-  status: { type: Boolean, default: false },
-  message: String,
+
+  message: { type: [String], default: [] },
 });
 messageEsquema.pre("find", function () {
   this.lean();

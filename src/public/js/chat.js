@@ -28,12 +28,14 @@ Swal.fire({
 
   socket.on("hello", (mensajes) => {
     mensajes.forEach((mensaje) => {
-      let parrafo = document.createElement("p");
-      parrafo.innerHTML = `<strong>${mensaje.user}</strong> dice: <i>${mensaje.message}</i>`;
-      parrafo.classList.add("mensaje");
-      let br = document.createElement("br");
-      divMensajes.append(parrafo, br);
-      divMensajes.scrollTop = divMensajes.scrollHeight;
+      mensaje.message.forEach((m) => {
+        let parrafo = document.createElement("p");
+        parrafo.innerHTML = `<strong>${mensaje.user}</strong> dice: <i>${m}</i>`;
+        parrafo.classList.add("mensaje");
+        let br = document.createElement("br");
+        divMensajes.append(parrafo, br);
+        divMensajes.scrollTop = divMensajes.scrollHeight;
+      });
     });
   });
 

@@ -45,17 +45,17 @@ const entornoChat = async () => {
   io.on("connection", async (socket) => {
     console.log(`Cliente conectado: ${socket.id}`);
     socket.on("id", async (nombre) => {
-      await messagesModelo.create({ user: nombre, id: socket.id, message: "" });
+      await messagesModelo.create({ user: nombre, id: socket.id });
 
       socket.broadcast.emit("nuevoUsuario", nombre);
-      let mensajesGuardados = await messagesModelo.find({ status: true });
+      let mensajesGuardados = await messagesModelo.find();
       socket.emit("hello", mensajesGuardados);
     });
 
     socket.on("mensaje", async (datos) => {
       await messagesModelo.updateOne(
         { id: socket.id },
-        { message: `${datos.mensaje}}`, status: true }
+        { $push: { message: datos.mensaje } }
       );
 
       io.emit("nuevoMensaje", datos);
