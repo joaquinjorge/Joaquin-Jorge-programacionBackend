@@ -99,17 +99,22 @@ const entorno = async () => {
 };
 
 productsRouter.get("/", async (req, res) => {
-  let productos = await productosModelo.find();
+ 
 
   const cortar = req.query.limit;
+  const sort=req.query.sort
+  let productos = await productosModelo.find().limit(cortar)
   res.setHeader("Content-Type", "application/json");
-  if (cortar) {
-    let prodCortados = await productosModelo.find().limit(cortar);
-
-    isNaN(cortar)
-      ? res.status(400).json({ error: "ingrese un valor numerico" })
-      : res.json({ prodCortados });
-  } else res.json({ productos });
+ 
+  if(sort){
+    let prodOrdenados = await productosModelo.find().limit(cortar).sort({price:Number(sort)});
+   
+    
+    
+     res.json({prodOrdenados });
+  }
+ 
+  else res.json({ productos });
 });
 productsRouter.post("/", async (req, res) => {
   let { title, price, description, code, stock, status, category } = req.body;
