@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const paginate = require("mongoose-paginate-v2");
 
 const productosColeccion = "products";
 const productosEsquema = new mongoose.Schema(
@@ -37,5 +38,6 @@ productosEsquema.pre("find", function () {
     deleted: false,
   }).lean();
 });
+productosEsquema.plugin(paginate)
 const productosModelo = mongoose.model(productosColeccion, productosEsquema);
 module.exports = productosModelo;

@@ -9,10 +9,27 @@ const vistasRouter = Router();
 let pm01 = new ProductManager(ruta);
 
 vistasRouter.get("/", async (req, res) => {
-  let products = await productosModelo.find();
+  let pagina=1
+    if(req.query.pagina){
+        pagina=req.query.pagina
+    }
+
+    let productos
+    try {
+        // usuarios=await usuariosModelo.find().lean()
+       productos=await productosModelo.paginate({},{lean:true, limit:5, page: pagina})
+        console.log(productos)
+
+    } catch (error) {
+        console.log(error)
+        productos=[]
+    }
+
+    let {totalPages, hasNextPage, hasPrevPage, prevPage, nextPage}=productos
   res
     .status(200)
-    .render("home", { products, titulo: "Home Page", estilo: "stylesHome" });
+    .render("home", { productos:productos.docs,
+      totalPages, hasNextPage, hasPrevPage, prevPage, nextPage, titulo: "Home Page", estilo: "stylesHome" });
 });
 
 vistasRouter.get("/realtimeproducts", async (req, res) => {
