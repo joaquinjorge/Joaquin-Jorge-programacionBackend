@@ -3,20 +3,21 @@ const mongoose = require("mongoose");
 const cartColeccion = "carts";
 const cartEsquema = new mongoose.Schema(
   {
-    products: {
-      type: [
-        {
-          product: { type: mongoose.Schema.Types.ObjectId, ref: "products" },
-          quantity: Number,
-        },
-      ],
-    },
-  },
-  {
-    timestamps: true,
-
-    strict: true,
+    products: [
+      {
+          product:{
+              type: mongoose.Schema.Types.ObjectId,
+              ref: "products",                
+          },
+          quantity: Number
+      }
+  ],
+  deleted: {
+      type: Boolean,
+      default: false
   }
+  },
+ 
 );
 cartEsquema.pre("findById", function () {
   this.populate({
