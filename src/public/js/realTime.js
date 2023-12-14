@@ -14,3 +14,8 @@ socket.on("prodEliminado", ({ id }) => {
 
   productoAEliminar.remove();
 });
+
+socket.on("productoUpdate", (producto) => {
+  let productoActualizado=document.getElementById(`producto-${producto._id}`)
+  productoActualizado.innerHTML=producto.title
+});

@@ -17,7 +17,7 @@ vistasRouter.get("/", async (req, res) => {
     let productos
     try {
         // usuarios=await usuariosModelo.find().lean()
-       productos=await productosModelo.paginate({},{lean:true, limit:5, page: pagina})
+       productos=await productosModelo.paginate({deleted:false},{lean:true, limit:5, page: pagina})
         console.log(productos)
 
     } catch (error) {

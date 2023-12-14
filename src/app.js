@@ -4,9 +4,9 @@ const { engine } = require("express-handlebars");
 const { Server } = require("socket.io");
 const mongoose = require("mongoose");
 
-const productsRouter = require("./routes/products");
-const cartRouter = require("./routes/cart");
-const vistasRouter = require("./routes/vistas");
+const productsRouter = require("./routes/products.js");
+const cartRouter = require("./routes/cart.js");
+const vistasRouter = require("./routes/vistas.js");
 const messagesModelo = require("./dao/models/messages.js");
 const app = express();
 
@@ -25,8 +25,6 @@ try {
 } catch (error) {
   console.log("no se pudo conectar a la base de datos" + error);
 }
-
-app.use("/", vistasRouter);
 app.use(
   "/api/products",
   (req, res, next) => {
@@ -37,6 +35,9 @@ app.use(
   productsRouter
 );
 app.use("/api/carts", cartRouter);
+app.use("/", vistasRouter);
+
+
 
 const server = app.listen(8080, () => console.log("el servidor esta listo"));
 const io = new Server(server);
