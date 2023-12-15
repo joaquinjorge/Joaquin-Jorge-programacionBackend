@@ -1,24 +1,21 @@
 const mongoose = require("mongoose");
 
 const cartColeccion = "carts";
-const cartEsquema = new mongoose.Schema(
-  {
-    products: [
-      {
-          product:{
-              type: mongoose.Schema.Types.ObjectId,
-              ref: "products",                
-          },
-          quantity: Number
-      }
+const cartEsquema = new mongoose.Schema({
+  products: [
+    {
+      product: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "products",
+      },
+      quantity: Number,
+    },
   ],
   deleted: {
-      type: Boolean,
-      default: false
-  }
+    type: Boolean,
+    default: false,
   },
- 
-);
+});
 cartEsquema.pre("findById", function () {
   this.populate({
     path: "products.product",

@@ -1,7 +1,6 @@
 const socket = io();
 
 socket.on("nuevoProdConMiddleware", (producto) => {
-  
   let ulProd = document.querySelector("ul");
   let liNuevoProd = document.createElement("li");
   liNuevoProd.setAttribute(`id`, `producto-${producto._id}`);
@@ -16,6 +15,6 @@ socket.on("prodEliminado", ({ id }) => {
 });
 
 socket.on("productoUpdate", (producto) => {
-  let productoActualizado=document.getElementById(`producto-${producto._id}`)
-  productoActualizado.innerHTML=producto.title
+  let productoActualizado = document.getElementById(`producto-${producto._id}`);
+  productoActualizado.innerHTML = producto.title;
 });

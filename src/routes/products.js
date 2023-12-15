@@ -99,22 +99,19 @@ const entorno = async () => {
 };
 
 productsRouter.get("/", async (req, res) => {
- 
-
   const cortar = req.query.limit;
-  const sort=req.query.sort
-  let productos = await productosModelo.find().limit(cortar)
+  const sort = req.query.sort;
+  let productos = await productosModelo.find().limit(cortar);
   res.setHeader("Content-Type", "application/json");
- 
-  if(sort){
-    let prodOrdenados = await productosModelo.find().limit(cortar).sort({price:Number(sort)});
-   
-    
-    
-     res.json({prodOrdenados });
-  }
- 
-  else res.json({ productos });
+
+  if (sort) {
+    let prodOrdenados = await productosModelo
+      .find()
+      .limit(cortar)
+      .sort({ price: Number(sort) });
+
+    res.json({ prodOrdenados });
+  } else res.json({ productos });
 });
 productsRouter.post("/", async (req, res) => {
   let { title, price, description, code, stock, status, category } = req.body;
@@ -261,8 +258,8 @@ productsRouter.put("/:id", async (req, res) => {
       propiedadesPermitidas,
     });
   }
- 
- if (req.body.title && typeof req.body.title !== "string") {
+
+  if (req.body.title && typeof req.body.title !== "string") {
     return res
       .status(400)
       .json({ error: "La propiedad title debe ser de tipo string" });
@@ -302,8 +299,8 @@ productsRouter.put("/:id", async (req, res) => {
     if (productoActualizado.modifiedCount > 0) {
       res.setHeader("Content-Type", "application/json");
       res.status(200).json({ payload: "modificacion realizada" });
-      let productoUpdateado=await productosModelo.findById(id)
-      req.io.emit("productoUpdate",productoUpdateado)
+      let productoUpdateado = await productosModelo.findById(id);
+      req.io.emit("productoUpdate", productoUpdateado);
     } else {
       res.setHeader("Content-Type", "application/json");
       return res.status(400).json({ error: `No se concretó la modificación` });
@@ -316,7 +313,6 @@ productsRouter.put("/:id", async (req, res) => {
     });
   }
 });
-
 
 productsRouter.delete("/:pid", async (req, res) => {
   let id = req.params.pid;
@@ -348,11 +344,13 @@ productsRouter.delete("/:pid", async (req, res) => {
       res.setHeader("Content-Type", "application/json");
       return res.status(400).json({ error: `No se concretó la eliminacion` });
     }
-  } catch (error) { res.setHeader("Content-Type", "application/json");
-  return res.status(500).json({
-    error: `Error inesperado en el servidor - Intente más tarde, o contacte a su administrador`,
-    detalle: error.message,
-  });}
+  } catch (error) {
+    res.setHeader("Content-Type", "application/json");
+    return res.status(500).json({
+      error: `Error inesperado en el servidor - Intente más tarde, o contacte a su administrador`,
+      detalle: error.message,
+    });
+  }
 });
 
 productsRouter.get("/:pid", async (req, res) => {

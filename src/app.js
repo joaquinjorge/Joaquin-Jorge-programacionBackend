@@ -37,8 +37,6 @@ app.use(
 app.use("/api/carts", cartRouter);
 app.use("/", vistasRouter);
 
-
-
 const server = app.listen(8080, () => console.log("el servidor esta listo"));
 const io = new Server(server);
 
