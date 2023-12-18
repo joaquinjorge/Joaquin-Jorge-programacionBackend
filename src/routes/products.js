@@ -99,19 +99,46 @@ const entorno = async () => {
 };
 
 productsRouter.get("/", async (req, res) => {
-  const cortar = req.query.limit;
-  const sort = req.query.sort;
-  let productos = await productosModelo.find().limit(cortar);
-  res.setHeader("Content-Type", "application/json");
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
 
-  if (sort) {
-    let prodOrdenados = await productosModelo
-      .find()
-      .limit(cortar)
-      .sort({ price: Number(sort) });
+  try {
+    const options = {
+      page,
+      limit,
+    };
 
-    res.json({ prodOrdenados });
-  } else res.json({ productos });
+    const result = await productosModelo.paginate({}, options);
+
+    const prevPage = result.hasPrevPage ? result.prevPage : null;
+    const nextPage = result.hasNextPage ? result.nextPage : null;
+
+    const prevLink = prevPage
+      ? `/api/products?page=${prevPage}&limit=${limit}`
+      : null;
+    const nextLink = nextPage
+      ? `/api/products?page=${nextPage}&limit=${limit}`
+      : null;
+
+    res.status(200).json({
+      status: "success",
+      payload: result.docs,
+      totalPages: result.totalPages,
+      prevPage,
+      nextPage,
+      page,
+      hasPrevPage: result.hasPrevPage,
+      hasNextPage: result.hasNextPage,
+      prevLink,
+      nextLink,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error:
+        `Error inesperado en el servidor - Intente más tarde, o contacte a su administrador` +
+        error.message,
+    });
+  }
 });
 productsRouter.post("/", async (req, res) => {
   let { title, price, description, code, stock, status, category } = req.body;

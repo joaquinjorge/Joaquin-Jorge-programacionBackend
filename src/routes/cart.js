@@ -67,6 +67,88 @@ cartRouter.get("/:cid", async (req, res) => {
 
 cartRouter.post("/:cid/product/:pid", async (req, res) => {
   let { cid, pid } = req.params;
+
+  if (!mongoose.isValidObjectId(cid) || !mongoose.isValidObjectId(pid)) {
+    res.setHeader("Content-Type", "application/json");
+    return res.status(400).json({ error: `Indique un id válido` });
+  }
+
+  let existeCarrito;
+  try {
+    existeCarrito = await cartsModelo.findOne({ deleted: false, _id: cid });
+  } catch (error) {
+    res.setHeader("Content-Type", "application/json");
+    return res
+      .status(500)
+      .json({ error: `Error al buscar carrito`, message: error.message });
+  }
+
+  if (!existeCarrito) {
+    res.setHeader("Content-Type", "application/json");
+    return res.status(400).json({ error: `No existe carrito con id ${cid}` });
+  }
+
+  let existeProducto;
+  try {
+    existeProducto = await productosModelo.findOne({
+      deleted: false,
+      _id: pid,
+    });
+  } catch (error) {
+    res.setHeader("Content-Type", "application/json");
+    return res
+      .status(500)
+      .json({ error: `Error al buscar producto`, message: error.message });
+  }
+
+  if (!existeProducto) {
+    res.setHeader("Content-Type", "application/json");
+    return res.status(400).json({ error: `No existe producto con id ${pid}` });
+  }
+
+  let resultado;
+  let cantidad = 1;
+  if (req.body.quantity) {
+    cantidad = req.body.quantity;
+  }
+
+  let indice = existeCarrito.products.findIndex(
+    (p) => p.product._id == existeProducto._id.toString()
+  );
+  if (indice === -1) {
+    existeCarrito.products.push({
+      product: existeProducto._id,
+      quantity: cantidad,
+    });
+  } else {
+    existeCarrito.products[indice].quantity =
+      existeCarrito.products[indice].quantity + cantidad;
+  }
+
+  try {
+    resultado = await cartsModelo.updateOne(
+      { deleted: false, _id: cid },
+      existeCarrito
+    );
+
+    if (resultado.modifiedCount > 0) {
+      res.setHeader("Content-Type", "application/json");
+      return res.status(200).json({ payload: "modificación realizada" });
+    } else {
+      res.setHeader("Content-Type", "application/json");
+      return res
+        .status(200)
+        .json({ message: "No se modificó ningún producto" });
+    }
+  } catch (error) {
+    res.setHeader("Content-Type", "application/json");
+    return res
+      .status(500)
+      .json({ error: `Error inesperado`, message: error.message });
+  }
+});
+cartRouter.delete("/:cid/product/:pid", async (req, res) => {
+  let { cid, pid } = req.params;
   if (!mongoose.isValidObjectId(cid) || !mongoose.isValidObjectId(pid)) {
     res.setHeader("Content-Type", "application/json");
     return res.status(400).json({ error: `Indique un id válido` });
@@ -107,19 +189,10 @@ cartRouter.post("/:cid/product/:pid", async (req, res) => {
 
   let resultado;
 
-  let indice = existeCarrito.products.findIndex(
-    (p) => p.product._id == existeProducto._id.toString()
-  );
-  if (indice === -1) {
-    existeCarrito.products.push({ product: existeProducto._id, quantity: 1 });
-  } else {
-    existeCarrito.products[indice].quantity++;
-  }
-
   try {
     resultado = await cartsModelo.updateOne(
-      { deleted: false, _id: cid },
-      existeCarrito
+      { deleted: false, _id: cid, "products.product": pid },
+      { $pull: { products: { product: pid } } }
     );
 
     if (resultado.modifiedCount > 0) {
@@ -136,6 +209,34 @@ cartRouter.post("/:cid/product/:pid", async (req, res) => {
     return res
       .status(500)
       .json({ error: `Error inesperado`, message: error.message });
+  }
+});
+
+cartRouter.delete("/:cid", async (req, res) => {
+  const carritoId = req.params.cid;
+  if (!mongoose.isValidObjectId(carritoId)) {
+    res.setHeader("Content-Type", "application/json");
+    return res.status(400).json({ error: `Indique un id válido` });
+  }
+  try {
+    const resultado = await cartsModelo.updateOne(
+      { _id: carritoId },
+      { $set: { products: [] } }
+    );
+
+    if (resultado.modifiedCount > 0) {
+      res.status(200).json({
+        message: "Todos los productos han sido eliminados del carrito",
+      });
+    } else {
+      res.status(400).json({ error: "No se encontró el carrito" });
+    }
+  } catch (error) {
+    res.status(500).json({
+      error:
+        `Error inesperado en el servidor - Intente más tarde, o contacte a su administrador` +
+        error.message,
+    });
   }
 });
 

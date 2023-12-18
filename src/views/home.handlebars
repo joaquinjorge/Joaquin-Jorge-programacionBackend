@@ -1,30 +1,12 @@
 <h2>Home Page</h2>
 <hr />
-<h2>Productos:</h2>
-<ul>
-  {{#each productos}}
-    <li>{{this.title}}</li>
-  {{/each}}
-</ul>
+<h2>Links:</h2>
 
 <br /><br />
-<a href="/?pagina=1">Pág.1</a>
 
-{{#if hasPrevPage}}
-  <a href="/?pagina={{prevPage}}">Pág.Ant.</a>
-{{else}}
-  <span>Pág.Ant.</span>
-{{/if}}
-
-{{#if hasNextPage}}
-  <a href="/?pagina={{nextPage}}">Pág.Sig.</a>
-{{else}}
-  <span>Pág.Sig.</span>
-{{/if}}
-
-<a href="/?pagina={{totalPages}}">Ult.Pág.</a>
 <br /><br />
 <br /><br />
 <a href="/realtimeproducts">Real time Products</a>
 <a href="/chat">Chat</a>
 <a href="/carts">Cart</a>
+<a href="/products">Products</a>
