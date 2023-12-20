@@ -3,12 +3,30 @@ const path = require("path");
 const { engine } = require("express-handlebars");
 const { Server } = require("socket.io");
 const mongoose = require("mongoose");
+const sessions = require("express-session");
+const mongoStore = require("connect-mongo");
 
 const productsRouter = require("./routes/products.js");
 const cartRouter = require("./routes/cart.js");
 const vistasRouter = require("./routes/vistas.js");
 const messagesModelo = require("./dao/models/messages.js");
+const sessionRouter = require("./routes/session.js");
+
 const app = express();
+
+app.use(
+  sessions({
+    secret: "codercoder123",
+    resave: true,
+    saveUninitialized: true,
+    store: mongoStore.create({
+      mongoUrl:
+        "mongodb+srv://joaquinjorge1998:poresterol123@cluster0.ooya4ec.mongodb.net/",
+
+      ttl: 3600,
+    }),
+  })
+);
 
 app.engine("handlebars", engine());
 app.set("view engine", "handlebars");
@@ -25,6 +43,8 @@ try {
 } catch (error) {
   console.log("no se pudo conectar a la base de datos" + error);
 }
+app.use("/api/sessions", sessionRouter);
+
 app.use(
   "/api/products",
   (req, res, next) => {

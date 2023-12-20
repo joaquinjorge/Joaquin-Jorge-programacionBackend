@@ -22,8 +22,6 @@ const productosEsquema = new mongoose.Schema(
     },
   },
   {
-    
-
     strict: true,
   }
 );
@@ -38,6 +36,6 @@ productosEsquema.pre("find", function () {
     deleted: false,
   }).lean();
 });
-productosEsquema.plugin(paginate)
+productosEsquema.plugin(paginate);
 const productosModelo = mongoose.model(productosColeccion, productosEsquema);
 module.exports = productosModelo;

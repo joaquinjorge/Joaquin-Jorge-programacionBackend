@@ -11,7 +11,15 @@ const Router = require("express").Router;
 const vistasRouter = Router();
 let pm01 = new ProductManager(ruta);
 
-vistasRouter.get("/products", async (req, res) => {
+const auth = (req, res, next) => {
+  if (!req.session.usuario) {
+    res.redirect("/login");
+  }
+
+  next();
+};
+
+vistasRouter.get("/products", auth, async (req, res) => {
   let pagina = 1;
   if (req.query.pagina) {
     pagina = req.query.pagina;
@@ -29,7 +37,7 @@ vistasRouter.get("/products", async (req, res) => {
     console.log(error);
     productos = [];
   }
-
+  let user = req.session.usuario;
   let { totalPages, hasNextPage, hasPrevPage, prevPage, nextPage } = productos;
   res.status(200).render("products", {
     productos: productos.docs,
@@ -40,10 +48,11 @@ vistasRouter.get("/products", async (req, res) => {
     nextPage,
     titulo: "Product Page",
     estilo: "stylesHome",
+    user,
   });
 });
 
-vistasRouter.get("/realtimeproducts", async (req, res) => {
+vistasRouter.get("/realtimeproducts", auth, async (req, res) => {
   let products = await productosModelo.find();
   res.status(200).render("realTimeProducts", {
     products,
@@ -51,7 +60,7 @@ vistasRouter.get("/realtimeproducts", async (req, res) => {
     estilo: "stylesHome",
   });
 });
-vistasRouter.get("/", async (req, res) => {
+vistasRouter.get("/", auth, async (req, res) => {
   let products = await productosModelo.find();
   res.status(200).render("Home", {
     products,
@@ -60,7 +69,7 @@ vistasRouter.get("/", async (req, res) => {
   });
 });
 
-vistasRouter.get("/carts", async (req, res) => {
+vistasRouter.get("/carts", auth, async (req, res) => {
   let carts = await cartsModelo.find().populate();
 
   res.status(200).render("carts", {
@@ -69,7 +78,7 @@ vistasRouter.get("/carts", async (req, res) => {
     estilo: "stylesHome",
   });
 });
-vistasRouter.get("/cart/:cid", async (req, res) => {
+vistasRouter.get("/cart/:cid", auth, async (req, res) => {
   let id = req.params.cid;
 
   if (!mongoose.isValidObjectId(id)) {
@@ -93,18 +102,38 @@ vistasRouter.get("/cart/:cid", async (req, res) => {
     return res.status(400).json({ error: `No existe carrito con id ${id}` });
   }
 
-  res.status(200).render("cart", {
+  res.status(200).render("cart", auth, {
     existe,
     titulo: "Carts",
     estilo: "stylesHome",
   });
 });
 
-vistasRouter.get("/chat", (req, res) => {
+vistasRouter.get("/chat", auth, (req, res) => {
   res.status(200).render("chat", {
     titulo: "Chat",
     estilo: "styles",
   });
 });
 
+vistasRouter.get("/perfil", auth, (req, res) => {
+  let usuario = req.session.usuario;
+  console.log(req.session.usuario);
+
+  res.setHeader("Content-Type", "text/html");
+  res.status(200).render("perfil", { usuario });
+});
+vistasRouter.get("/login", (req, res) => {
+  let { error, mensaje } = req.query;
+
+  res.setHeader("Content-Type", "text/html");
+  res.status(200).render("login", { error, mensaje });
+});
+
+vistasRouter.get("/registro", (req, res) => {
+  let { error } = req.query;
+
+  res.setHeader("Content-Type", "text/html");
+  res.status(200).render("registro", { error });
+});
 module.exports = vistasRouter;
