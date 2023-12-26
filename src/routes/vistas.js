@@ -13,7 +13,15 @@ let pm01 = new ProductManager(ruta);
 
 const auth = (req, res, next) => {
   if (!req.session.usuario) {
-    res.redirect("/login");
+    return res.redirect("/login");
+  }
+
+  next();
+};
+
+const auth2 = (req, res, next) => {
+  if (req.session.usuario) {
+    return res.redirect("/products");
   }
 
   next();
@@ -39,6 +47,7 @@ vistasRouter.get("/products", auth, async (req, res) => {
   }
   let user = req.session.usuario;
   let { totalPages, hasNextPage, hasPrevPage, prevPage, nextPage } = productos;
+
   res.status(200).render("products", {
     productos: productos.docs,
     totalPages,
@@ -49,6 +58,7 @@ vistasRouter.get("/products", auth, async (req, res) => {
     titulo: "Product Page",
     estilo: "stylesHome",
     user,
+    login: req.session.usuario ? true : false,
   });
 });
 
@@ -58,14 +68,16 @@ vistasRouter.get("/realtimeproducts", auth, async (req, res) => {
     products,
     titulo: "Real Time Products",
     estilo: "stylesHome",
+    login: req.session.usuario ? true : false,
   });
 });
 vistasRouter.get("/", auth, async (req, res) => {
   let products = await productosModelo.find();
-  res.status(200).render("Home", {
+  res.status(200).render("home", {
     products,
     titulo: "Home page",
     estilo: "stylesHome",
+    login: req.session.usuario ? true : false,
   });
 });
 
@@ -76,6 +88,7 @@ vistasRouter.get("/carts", auth, async (req, res) => {
     carts,
     titulo: "Carts",
     estilo: "stylesHome",
+    login: req.session.usuario ? true : false,
   });
 });
 vistasRouter.get("/cart/:cid", auth, async (req, res) => {
@@ -106,6 +119,7 @@ vistasRouter.get("/cart/:cid", auth, async (req, res) => {
     existe,
     titulo: "Carts",
     estilo: "stylesHome",
+    login: req.session.usuario ? true : false,
   });
 });
 
@@ -113,6 +127,7 @@ vistasRouter.get("/chat", auth, (req, res) => {
   res.status(200).render("chat", {
     titulo: "Chat",
     estilo: "styles",
+    login: req.session.usuario ? true : false,
   });
 });
 
@@ -121,19 +136,29 @@ vistasRouter.get("/perfil", auth, (req, res) => {
   console.log(req.session.usuario);
 
   res.setHeader("Content-Type", "text/html");
-  res.status(200).render("perfil", { usuario });
+  res
+    .status(200)
+    .render("perfil", { usuario, login: req.session.usuario ? true : false });
 });
-vistasRouter.get("/login", (req, res) => {
+vistasRouter.get("/login", auth2, (req, res) => {
   let { error, mensaje } = req.query;
 
   res.setHeader("Content-Type", "text/html");
-  res.status(200).render("login", { error, mensaje });
+  res
+    .status(200)
+    .render("login", {
+      error,
+      mensaje,
+      login: req.session.usuario ? true : false,
+    });
 });
 
 vistasRouter.get("/registro", (req, res) => {
   let { error } = req.query;
 
   res.setHeader("Content-Type", "text/html");
-  res.status(200).render("registro", { error });
+  res
+    .status(200)
+    .render("registro", { error, login: req.session.usuario ? true : false });
 });
 module.exports = vistasRouter;
